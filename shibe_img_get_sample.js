@@ -32,14 +32,14 @@ function post_image_to_imgur(url_result_json){
     let url_result_string = url_result_json.join("");
     console.log(url_result_string);
     const options = {
-        "method": "POST",
+        method: "POST",
         "hostname": "api.imgur.com",
         "port": null,
         "path": "/3/upload",
-        "headers": {
-          "Authorization": "Bearer 80810473b84f865cf5860f3aa628d0c4e4e0dd32",
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Content-Length": "0"
+        headers: {
+          Authorization: "Bearer 80810473b84f865cf5860f3aa628d0c4e4e0dd32",
+          "Content-Type": "application/x-www-form-urlencoded" //,
+        //   "Content-Length": "0"
         }
     };
 
