@@ -2,8 +2,11 @@ var https = require('https');
 var fs = require('fs');
 const qs = require("querystring");
 
+// the download images are not getting used as the url directly uploads the image
 let download_images = 0;
 let album_art_paths = [];
+
+
 let image_url = "https://shibe.online/api/shibes?count=1&urls=true&httpsUrls=true";
 
 
