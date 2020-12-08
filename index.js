@@ -15,6 +15,7 @@ const port = 3069;
 const server = http.createServer();
 const fs = require("fs");
 const url = require("url");
+// const button = document.querySelector('input');
 const credentials = require("./auth/credentials.json");
 
 server.on("request", connection_handler);
@@ -26,17 +27,25 @@ function connection_handler(req, res){
         const main = fs.createReadStream('html/main.html');
         res.writeHead(200, {'Content-Type':'text/html'});
         main.pipe(res);
+
+
+        // button.addEventListener('click', send_access_token_request());
     }
 
     // something here for posting the favicon
     // something here for banner image/gif and styling 
 
     // here it is if the button is clicked 
-    // else if(req.url.startsWith("/post_shibe_image/")){
-    //     console.log("it's coming in here!");
-    // }   
+    else if(req.url.startsWith("/post_shibe_image")){
+        console.log("it's coming in here!");
+    }   
+
 
 } //connection_handler
+
+function send_access_token_request(){
+    console.log("The button click is registered")
+}
 
 server.listen(port);
 
