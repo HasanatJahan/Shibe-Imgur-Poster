@@ -29,7 +29,6 @@ function connection_handler(req, res){
     }
 
     // something here for posting the favicon
-
     // something here for banner image/gif and styling 
 
     // here it is if the button is clicked 
