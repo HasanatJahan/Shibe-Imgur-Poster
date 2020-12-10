@@ -43,10 +43,28 @@ function connection_handler(req, res){
 
     // if the code is received 
 	if(req.url.startsWith("/receive_code")){
-        console.log(req.url);
-        const code = url.parse(req.url, true).query;
-        // console.log(`This is the code ${code}`)
+        
+        const main = fs.createReadStream('html/receive_code.html');
+        res.writeHead(200, {'Content-Type':'text/html'});
+        main.pipe(res);
+        
+        
+        // console.log(req.url);
+        // const url_obj =  url.parse(req.url, true);
+        // console.log(url_obj);
+
+        // console.log("this is the req");
+        // console.log(url.parse(req.url).pathname);
+
+        // const code = querystring.parse(url.parse(req.url).hash.replace('#', ''));
+        // console.log(code);
         // receieved_authentication(code, res);
+    }
+
+    if(req.url.startsWith("/catchtoken")){
+        console.log("reached here");
+        console.log(url.parse(req.url, true).query);
+        // processing here that saves it here 
     }
 
 } //end of connection_handler
@@ -73,13 +91,13 @@ function redirect_to_imgur(res){
     
 } // end of redirect_to_imgur 
 
-// function receieved_authentication(message, res){
-//     console.log("inside recieved authenticaiton");
-//     // let auth_token = JSON.parse(message);
-//     const queryObject = url.parse(res.url,true).query;
-//     console.log(queryObject);    
-//     // console.log(`This is the auth access token ${auth_token}`);
-// }
+function receieved_authentication(message, res){
+    console.log("inside recieved authenticaiton");
+    // let auth_token = JSON.parse(message);
+    const queryObject = url.parse(res.url,true).query;
+    console.log(queryObject);    
+    // console.log(`This is the auth access token ${auth_token}`);
+}
 
 server.on("listening", listening_handler);
 function listening_handler(){
