@@ -48,23 +48,17 @@ function connection_handler(req, res){
         res.writeHead(200, {'Content-Type':'text/html'});
         main.pipe(res);
         
-        
-        // console.log(req.url);
-        // const url_obj =  url.parse(req.url, true);
-        // console.log(url_obj);
-
-        // console.log("this is the req");
-        // console.log(url.parse(req.url).pathname);
-
-        // const code = querystring.parse(url.parse(req.url).hash.replace('#', ''));
-        // console.log(code);
-        // receieved_authentication(code, res);
     }
 
     if(req.url.startsWith("/catchtoken")){
         console.log("reached here");
-        console.log(url.parse(req.url, true).query);
         // processing here that saves it here 
+        const token_body = url.parse(req.url, true).query;
+        const access_token = token_body.access_token;
+        // console.log(token_body.access_token);
+
+
+        get_shibe_image(access_token);
     }
 
 } //end of connection_handler
@@ -91,12 +85,75 @@ function redirect_to_imgur(res){
     
 } // end of redirect_to_imgur 
 
-function receieved_authentication(message, res){
-    console.log("inside recieved authenticaiton");
-    // let auth_token = JSON.parse(message);
-    const queryObject = url.parse(res.url,true).query;
-    console.log(queryObject);    
-    // console.log(`This is the auth access token ${auth_token}`);
+// function receieved_authentication(message, res){
+//     console.log("inside recieved authenticaiton");
+//     // let auth_token = JSON.parse(message);
+//     const queryObject = url.parse(res.url,true).query;
+//     console.log(queryObject);    
+//     // console.log(`This is the auth access token ${auth_token}`);
+// }
+
+function get_shibe_image(access_token){
+    let image_url = "https://shibe.online/api/shibes?count=1&urls=true&httpsUrls=true";
+    const shibe_img_request = https.get(image_url, (incoming_message) =>{
+        const chunks = [];
+        incoming_message.on("data", (data) =>{
+            chunks.push(data);
+        })
+        incoming_message.on("error", (err) =>{
+            console.log(err);
+        })
+        incoming_message.on("end", () =>{
+            const body = Buffer.concat(chunks);
+            let url_result_json = JSON.parse(body);
+            console.log(`This is the url result json ${url_result_json}`);
+
+            // this is making a call to post to imgur 
+            post_image_to_imgur(access_token, url_result_json);
+        })
+    });
+    shibe_img_request.end();
+}
+
+function post_image_to_imgur(access_token, url_result_json){
+    console.log(url_result_json);
+    let url_result_string = url_result_json.join("");
+    console.log(url_result_string);
+    const options = {
+        method: "POST",
+        "hostname": "api.imgur.com",
+        "port": null,
+        "path": "/3/upload",
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+          "Content-Type": "application/x-www-form-urlencoded" //,
+        //   "Content-Length": "0"
+        }
+    };
+
+    const req = https.request(options, function (res) {
+        const chunks = [];
+      
+        res.on("data", function (chunk) {
+          chunks.push(chunk);
+        });
+
+        res.on("error", (err) =>{
+            console.log(err);
+        })
+      
+        res.on("end", function () {
+          const body = Buffer.concat(chunks);
+          console.log(body.toString());
+        });
+    });
+      
+
+    req.write(querystring.stringify({
+        type: 'url',
+        image: url_result_json
+    }), () => req.end());
+    
 }
 
 server.on("listening", listening_handler);
