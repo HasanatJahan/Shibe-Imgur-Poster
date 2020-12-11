@@ -64,10 +64,10 @@ function connection_handler(req, res){
            console.log("Cache is valid");
            cache_auth = require(authentication_cache);
            console.log("sending a request to process shibe image immediately")
-           get_shibe_image(cache_auth.access_token);
-           res.writeHead(200, {'Content-Type':'text/html'});
-           const main = fs.createReadStream('html/main.html');
-           main.pipe(res);
+           get_shibe_image(res, cache_auth.access_token);
+        //    res.writeHead(200, {'Content-Type':'text/html'});
+        //    const main = fs.createReadStream('html/main.html');
+        //    main.pipe(res);
 
         }
         else if(!cache_valid){
@@ -98,7 +98,7 @@ function connection_handler(req, res){
         imgur_auth.expiration = 3600 + auth_sent_time;
         
         create_access_token_cache(imgur_auth);
-        get_shibe_image(access_token);
+        get_shibe_image(res, access_token);
     }
 
 } //end of connection_handler
@@ -125,7 +125,7 @@ function redirect_to_imgur(res){
     
 } // end of redirect_to_imgur 
 
-function get_shibe_image(access_token){
+function get_shibe_image(res, access_token){
     let image_url = "https://shibe.online/api/shibes?count=1&urls=true&httpsUrls=true";
     const shibe_img_request = https.get(image_url, (incoming_message) =>{
         const chunks = [];
@@ -140,13 +140,13 @@ function get_shibe_image(access_token){
             let url_result_json = JSON.parse(body);
 
             // this is making a call to post to imgur 
-            post_image_to_imgur(access_token, url_result_json);
+            post_image_to_imgur(res, access_token, url_result_json);
         })
     });
     shibe_img_request.end();
 }
 
-function post_image_to_imgur(access_token, url_result_json){
+function post_image_to_imgur(res, access_token, url_result_json){
     const options = {
         method: "POST",
         "hostname": "api.imgur.com",
@@ -181,7 +181,12 @@ function post_image_to_imgur(access_token, url_result_json){
         image: url_result_json, 
         title : title_text
     }), () => req.end());
-    
+
+    // after writing is done - we show an alert that the image
+    const main = fs.createReadStream('html/main_with_alert.html');
+    res.writeHead(200, {'Content-Type':'text/html'});
+    main.pipe(res);
+
 }
 
 function create_access_token_cache(imgur_auth){
