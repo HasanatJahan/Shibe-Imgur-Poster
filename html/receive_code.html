@@ -3,8 +3,6 @@
 	<head>
         <title>Imgur Shibe Poster to Imgur</title>
         <script>
-                    
-
             // First, parse the query string
             var params = {}, queryString = location.hash.substring(1),
                 regex = /([^&=]+)=([^&]*)/g, m;
@@ -27,6 +25,7 @@
                 }
                 else {
                 alert('something else other than 200 was returned')
+                console.log(req)
                 }
             }
             };
