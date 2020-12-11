@@ -44,6 +44,11 @@ function connection_handler(req, res){
     }
 
     // something here for banner image/gif and styling 
+    else if(req.url === "/images/doge.jpg"){
+		const favicon_stream = fs.createReadStream(`images/doge.jpg`);
+		res.writeHead(200, {'Content-Type': 'image/jpg'});
+		favicon_stream.pipe(res);
+	}
 
     // here it is if the button is clicked 
     else if(req.url.startsWith("/post_shibe_image")){
