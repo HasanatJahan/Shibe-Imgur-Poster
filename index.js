@@ -18,6 +18,18 @@ const url = require("url");
 const querystring = require("querystring");
 const credentials = require("./auth/credentials.json");
 const host = "localhost";
+const authentication_cache = "./auth/authentication-res.json";
+
+
+const date_ob = new Date();
+const date = ("0" + date_ob.getDate()).slice(-2);
+const year = date_ob.getFullYear();
+const month = ("0" + (date_ob.getMonth() + 1)).slice(-2);
+const hours = date_ob.getHours();
+const minutes = date_ob.getMinutes();
+let seconds = date_ob.getSeconds();
+const time_of_program = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
+console.log(time_of_program);
 
 server.on("request", connection_handler);
 
@@ -85,14 +97,6 @@ function redirect_to_imgur(res){
     
 } // end of redirect_to_imgur 
 
-// function receieved_authentication(message, res){
-//     console.log("inside recieved authenticaiton");
-//     // let auth_token = JSON.parse(message);
-//     const queryObject = url.parse(res.url,true).query;
-//     console.log(queryObject);    
-//     // console.log(`This is the auth access token ${auth_token}`);
-// }
-
 function get_shibe_image(access_token){
     let image_url = "https://shibe.online/api/shibes?count=1&urls=true&httpsUrls=true";
     const shibe_img_request = https.get(image_url, (incoming_message) =>{
@@ -148,10 +152,13 @@ function post_image_to_imgur(access_token, url_result_json){
         });
     });
       
+    const title_text = `WOW WOW ${time_of_program}`;
+    console.log(`this is time of program for ${title_text}`);
 
     req.write(querystring.stringify({
         type: 'url',
-        image: url_result_json
+        image: url_result_json, 
+        title : title_text
     }), () => req.end());
     
 }
