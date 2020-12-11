@@ -20,7 +20,7 @@ const credentials = require("./auth/credentials.json");
 const host = "localhost";
 const authentication_cache = "./auth/authentication-res.json";
 
-
+// time for the program
 const date_ob = new Date();
 const date = ("0" + date_ob.getDate()).slice(-2);
 const year = date_ob.getFullYear();
@@ -33,7 +33,6 @@ console.log(time_of_program);
 
 server.on("request", connection_handler);
 
-
 function connection_handler(req, res){
     console.log(`New Request for ${req.url} from ${req.socket.remoteAddress}`);
 
@@ -44,32 +43,56 @@ function connection_handler(req, res){
         main.pipe(res);
     }
 
-    // something here for posting the favicon
     // something here for banner image/gif and styling 
 
     // here it is if the button is clicked 
     else if(req.url.startsWith("/post_shibe_image")){
-        redirect_to_imgur(res);
-        return
+        // check if you have cached data 
+        let cache_valid  = false;
+        if(fs.existsSync(authentication_cache)){
+            const cache_auth = require(authentication_cache);
+            if(new Date(cache_auth.expiration) > Date.now()/1000){
+                cache_valid = true;
+            }
+        }
+        if(cache_valid){
+           console.log("Cache is valid");
+           cache_auth = require(authentication_cache);
+           console.log("sending a request to process shibe image immediately")
+           get_shibe_image(cache_auth.access_token);
+           res.writeHead(200, {'Content-Type':'text/html'});
+           const main = fs.createReadStream('html/main.html');
+           main.pipe(res);
+
+        }
+        else if(!cache_valid){
+            console.log("redirect to imgur happening");
+            redirect_to_imgur(res);
+        }
+        else{
+            res.writeHead(404, {'Content-Type':'text/html'});
+		    res.end(`<h1>404 Not Found.</h1>`);
+        }
     }   
 
     // if the code is received 
 	if(req.url.startsWith("/receive_code")){
-        
         const main = fs.createReadStream('html/receive_code.html');
         res.writeHead(200, {'Content-Type':'text/html'});
         main.pipe(res);
-        
     }
 
     if(req.url.startsWith("/catchtoken")){
-        console.log("reached here");
         // processing here that saves it here 
         const token_body = url.parse(req.url, true).query;
         const access_token = token_body.access_token;
-        // console.log(token_body.access_token);
 
-
+        //modify access time 
+        let imgur_auth = token_body;
+        const auth_sent_time = Date.now();
+        imgur_auth.expiration = 3600 + auth_sent_time;
+        
+        create_access_token_cache(imgur_auth);
         get_shibe_image(access_token);
     }
 
@@ -90,7 +113,7 @@ function redirect_to_imgur(res){
     const authorization_endpoint = "https://api.imgur.com/oauth2/authorize"
 
     const authorization_location = `${authorization_endpoint}?${uri}`;
-    console.log(authorization_location);
+    // console.log(authorization_location);
 
     res.writeHead(302, {'Location': authorization_location});
     res.end();
@@ -110,7 +133,6 @@ function get_shibe_image(access_token){
         incoming_message.on("end", () =>{
             const body = Buffer.concat(chunks);
             let url_result_json = JSON.parse(body);
-            console.log(`This is the url result json ${url_result_json}`);
 
             // this is making a call to post to imgur 
             post_image_to_imgur(access_token, url_result_json);
@@ -120,9 +142,6 @@ function get_shibe_image(access_token){
 }
 
 function post_image_to_imgur(access_token, url_result_json){
-    console.log(url_result_json);
-    let url_result_string = url_result_json.join("");
-    console.log(url_result_string);
     const options = {
         method: "POST",
         "hostname": "api.imgur.com",
@@ -130,8 +149,7 @@ function post_image_to_imgur(access_token, url_result_json){
         "path": "/3/upload",
         headers: {
           Authorization: `Bearer ${access_token}`,
-          "Content-Type": "application/x-www-form-urlencoded" //,
-        //   "Content-Length": "0"
+          "Content-Type": "application/x-www-form-urlencoded" 
         }
     };
 
@@ -148,19 +166,26 @@ function post_image_to_imgur(access_token, url_result_json){
       
         res.on("end", function () {
           const body = Buffer.concat(chunks);
-          console.log(body.toString());
+        //   console.log(body.toString());
         });
     });
       
     const title_text = `WOW WOW ${time_of_program}`;
-    console.log(`this is time of program for ${title_text}`);
-
     req.write(querystring.stringify({
         type: 'url',
         image: url_result_json, 
         title : title_text
     }), () => req.end());
     
+}
+
+function create_access_token_cache(imgur_auth){
+    const JSON_auth = JSON.stringify(imgur_auth);
+    fs.writeFile(authentication_cache, JSON_auth, (err) =>{
+		if (err){
+			throw err;
+		}
+	});
 }
 
 server.on("listening", listening_handler);
