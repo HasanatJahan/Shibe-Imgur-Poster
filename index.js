@@ -43,6 +43,13 @@ function connection_handler(req, res){
         main.pipe(res);
     }
 
+    // to display the favicon
+	else if(req.url === "/favicon.ico"){
+		const favicon_stream = fs.createReadStream(`images/favicon.ico`);
+		res.writeHead(200, {'Content-Type': 'image/x-icon'});
+		favicon_stream.pipe(res);
+    }
+    
     // something here for banner image/gif and styling 
     else if(req.url === "/images/doge.jpg"){
 		const favicon_stream = fs.createReadStream(`images/doge.jpg`);
@@ -65,9 +72,6 @@ function connection_handler(req, res){
            cache_auth = require(authentication_cache);
            console.log("sending a request to process shibe image immediately")
            get_shibe_image(res, cache_auth.access_token);
-        //    res.writeHead(200, {'Content-Type':'text/html'});
-        //    const main = fs.createReadStream('html/main.html');
-        //    main.pipe(res);
 
         }
         else if(!cache_valid){
@@ -92,7 +96,7 @@ function connection_handler(req, res){
         const token_body = url.parse(req.url, true).query;
         const access_token = token_body.access_token;
 
-        //modify access time 
+        //modify access time for caching
         let imgur_auth = token_body;
         const auth_sent_time = Date.now();
         imgur_auth.expiration = 3600 + auth_sent_time;
