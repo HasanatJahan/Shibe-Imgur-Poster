@@ -62,7 +62,3 @@ A web application that allows users to automatically post random Shiba Inu pictu
 - Node.js
 - Imgur API credentials
 - Active internet connection
-
-## License
-
-This project is part of a student assignment (Student ID: 23686488)
